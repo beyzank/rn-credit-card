@@ -97,13 +97,13 @@ const TextField = React.forwardRef<TextInput, Props>((props, ref) => {
                 {
                   translateY: focusAnim.interpolate({
                     inputRange: [0, 1],
-                    outputRange: [24, -12],
+                    outputRange: [12, -6],
                   }),
                 },
                 {
                   translateX: focusAnim.interpolate({
                     inputRange: [0, 1],
-                    outputRange: [16, 0],
+                    outputRange: [12, 0],
                   }),
                 },
               ],
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
   },
   enhancerContainer: {
     position: 'absolute',
-    top: 12,
+    top: 4,
     right: 16,
   },
   error: {

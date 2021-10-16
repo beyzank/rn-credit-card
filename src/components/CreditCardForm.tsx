@@ -28,6 +28,8 @@ const CreditCardForm: React.FC<LibraryProps> = (props) => {
     horizontalStart = true,
     translations: parentTranslations,
     overrides,
+    emailInput,
+    cardAliasInput
   } = props
   const translations = getTranslations(parentTranslations)
   const { trigger, watch } = useFormContext()
@@ -52,11 +54,11 @@ const CreditCardForm: React.FC<LibraryProps> = (props) => {
 
   const [focusedField, setFocusedField] = useState<CardFields | null>(null)
 
-  useEffect(() => {
-    if (cardNumberRef?.current) {
-      cardNumberRef.current.focus()
-    }
-  }, [cardNumberRef])
+  // useEffect(() => {
+  //   if (cardNumberRef?.current) {
+  //     cardNumberRef.current.focus()
+  //   }
+  // }, [cardNumberRef])
 
   const textFieldStyle = isHorizontal
     ? [
@@ -109,115 +111,109 @@ const CreditCardForm: React.FC<LibraryProps> = (props) => {
         <Conditional condition={!props.formOnly}>
           <FormCard cardType={card?.type} focusedField={focusedField} />
         </Conditional>
-        <ScrollView
-          ref={scrollRef}
-          style={isHorizontal && { maxHeight: 120 }}
-          pagingEnabled={isHorizontal}
-          horizontal={isHorizontal}
-          scrollEnabled={!isHorizontal}
-          keyboardShouldPersistTaps="handled"
-        >
+        {props.children}
+        {cardAliasInput}
+        <FormTextField
+          style={textFieldStyle}
+          ref={cardNumberRef}
+          name="cardNumber"
+          label={translations.cardNumber}
+          keyboardType="number-pad"
+          autoCompleteType="cc-number"
+          maxLength={19}
+          validationLength={isAmex ? 18 : 19}
+          rules={{
+            required: translations.cardNumberRequired,
+            validate: {
+              isValid: (value: string) => {
+                return (
+                  cardValidator.number(value).isValid ||
+                  translations.cardNumberInvalid
+                )
+              },
+            },
+          }}
+          formatter={cardNumberFormatter}
+          endEnhancer={<CardIcon cardNumber={cardNumber} />}
+          onFocus={() => setFocusedField(CardFields.CardNumber)}
+          onValid={goNext}
+        />
+        <FormTextField
+          style={textFieldStyle}
+          ref={holderNameRef}
+          name="holderName"
+          autoCompleteType="name"
+          label={translations.cardHolderName}
+          rules={{
+            required: translations.cardHolderNameRequired,
+            validate: {
+              isValid: (value: string) => {
+                return (
+                  cardValidator.cardholderName(value).isValid ||
+                  translations.cardHolderNameInvalid
+                )
+              },
+            },
+          }}
+          autoCorrect={false}
+          onSubmitEditing={goNext}
+          onFocus={() => setFocusedField(CardFields.CardHolderName)}
+        />
+        <View style={styles.row}>
           <FormTextField
-            style={textFieldStyle}
-            ref={cardNumberRef}
-            name="cardNumber"
-            label={translations.cardNumber}
+            style={[
+              textFieldStyle,
+              {
+                marginRight: isHorizontal ? 0 : 24,
+              },
+            ]}
+            ref={expirationRef}
+            name="expiration"
+            label={translations.expiration}
             keyboardType="number-pad"
-            autoCompleteType="cc-number"
-            maxLength={19}
-            validationLength={isAmex ? 18 : 19}
+            autoCompleteType="cc-exp"
+            maxLength={5}
+            validationLength={5}
             rules={{
-              required: translations.cardNumberRequired,
+              required: translations.expirationRequired,
               validate: {
                 isValid: (value: string) => {
                   return (
-                    cardValidator.number(value).isValid ||
-                    translations.cardNumberInvalid
+                    cardValidator.expirationDate(value).isValid ||
+                    translations.expirationInvalid
                   )
                 },
               },
             }}
-            formatter={cardNumberFormatter}
-            endEnhancer={<CardIcon cardNumber={cardNumber} />}
-            onFocus={() => setFocusedField(CardFields.CardNumber)}
+            formatter={expirationDateFormatter}
+            onFocus={() => setFocusedField(CardFields.Expiration)}
             onValid={goNext}
           />
           <FormTextField
             style={textFieldStyle}
-            ref={holderNameRef}
-            name="holderName"
-            autoCompleteType="name"
-            label={translations.cardHolderName}
+            ref={cvvRef}
+            name="cvv"
+            label={translations.securityCode}
+            keyboardType="number-pad"
+            autoCompleteType="cc-csc"
+            maxLength={cvvLength}
+            validationLength={cvvLength}
             rules={{
-              required: translations.cardHolderNameRequired,
+              required: translations.securityCodeRequired,
               validate: {
                 isValid: (value: string) => {
                   return (
-                    cardValidator.cardholderName(value).isValid ||
-                    translations.cardHolderNameInvalid
+                    cardValidator.cvv(value, cvvLength).isValid ||
+                    translations.securityCodeInvalid
                   )
                 },
               },
             }}
-            autoCorrect={false}
-            onSubmitEditing={goNext}
-            onFocus={() => setFocusedField(CardFields.CardHolderName)}
+            onFocus={() => setFocusedField(CardFields.CVV)}
+            onValid={goNext}
           />
-          <View style={styles.row}>
-            <FormTextField
-              style={[
-                textFieldStyle,
-                {
-                  marginRight: isHorizontal ? 0 : 24,
-                },
-              ]}
-              ref={expirationRef}
-              name="expiration"
-              label={translations.expiration}
-              keyboardType="number-pad"
-              autoCompleteType="cc-exp"
-              maxLength={5}
-              validationLength={5}
-              rules={{
-                required: translations.expirationRequired,
-                validate: {
-                  isValid: (value: string) => {
-                    return (
-                      cardValidator.expirationDate(value).isValid ||
-                      translations.expirationInvalid
-                    )
-                  },
-                },
-              }}
-              formatter={expirationDateFormatter}
-              onFocus={() => setFocusedField(CardFields.Expiration)}
-              onValid={goNext}
-            />
-            <FormTextField
-              style={textFieldStyle}
-              ref={cvvRef}
-              name="cvv"
-              label={translations.securityCode}
-              keyboardType="number-pad"
-              autoCompleteType="cc-csc"
-              maxLength={cvvLength}
-              validationLength={cvvLength}
-              rules={{
-                required: translations.securityCodeRequired,
-                validate: {
-                  isValid: (value: string) => {
-                    return (
-                      cardValidator.cvv(value, cvvLength).isValid ||
-                      translations.securityCodeInvalid
-                    )
-                  },
-                },
-              }}
-              onFocus={() => setFocusedField(CardFields.CVV)}
-              onValid={goNext}
-            />
-          </View>
-        </ScrollView>
+        </View>
+        {emailInput}
         <Conditional condition={isHorizontal}>
           <Button
             style={[styles.button, overrides?.button]}
@@ -241,7 +237,6 @@ const styles = StyleSheet.create({
   row: {
     flex: 1,
     flexDirection: 'row',
-    marginBottom: 36,
   },
   textField: {
     marginTop: 24,
