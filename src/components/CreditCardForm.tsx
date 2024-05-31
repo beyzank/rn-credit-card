@@ -124,14 +124,7 @@ const CreditCardForm: React.FC<LibraryProps> = (props) => {
           validationLength={isAmex ? 18 : 19}
           rules={{
             required: translations.cardNumberRequired,
-            validate: {
-              isValid: (value: string) => {
-                return (
-                  cardValidator.number(value).isValid ||
-                  translations.cardNumberInvalid
-                )
-              },
-            },
+
           }}
           formatter={cardNumberFormatter}
           endEnhancer={<CardIcon cardNumber={cardNumber} />}
